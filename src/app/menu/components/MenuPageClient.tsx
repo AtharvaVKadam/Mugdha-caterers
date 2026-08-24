@@ -13,6 +13,7 @@ interface MenuItem {
   category: string;
   image: string;
   isVeg: boolean;
+  pricingUnit?: "person" | "kg";
   isBestSeller?: boolean;
   isTodaySpecial?: boolean;
   isPopular?: boolean;
@@ -31,6 +32,42 @@ const MENU_ITEMS: MenuItem[] = [
     isVeg: true,
     isBestSeller: true,
     isTodaySpecial: true,
+  },
+  {
+    id: "thali-nonveg-special",
+    name: "Special Non-Veg Thali",
+    description:
+      "Hearty non-veg thali with rice, flavourful chicken gravy, spicy chicken sukka & jowar bhakri",
+    price: 220,
+    category: "Special Thalis",
+    image: "https://images.unsplash.com/photo-1565557623262-b51c2513a641",
+    isVeg: false,
+    isBestSeller: true,
+  },
+  // Biryani
+  {
+    id: "biryani-veg",
+    name: "Veg Biryani",
+    description:
+      "Fragrant, flavourful & perfectly spiced vegetable biryani, served in a rich aromatic style",
+    price: 700,
+    pricingUnit: "kg",
+    category: "Biryani",
+    image: "https://images.unsplash.com/photo-1589302168068-964664d93dc0",
+    isVeg: true,
+    isPopular: true,
+  },
+  {
+    id: "biryani-chicken",
+    name: "Chicken Biryani",
+    description:
+      "Deliciously spiced chicken biryani prepared with aromatic rice and tender chicken pieces",
+    price: 800,
+    pricingUnit: "kg",
+    category: "Biryani",
+    image: "https://images.unsplash.com/photo-1633945274405-b6c8069047b0",
+    isVeg: false,
+    isBestSeller: true,
   },
   // Rice
   {
@@ -246,6 +283,7 @@ const CATEGORIES = [
   "All",
   "Special Thalis",
   "Starters",
+  "Biryani",
   "Rice",
   "Dal",
   "Vegetable Preparations",
@@ -325,7 +363,10 @@ export default function MenuPageClient() {
 
   const buildWhatsAppMessage = () => {
     const itemLines = cart
-      .map((c) => `• ${c.item.name} × ${c.quantity}`)
+      .map(
+        (c) =>
+          `• ${c.item.name} × ${c.quantity}${c.item.pricingUnit === "kg" ? " kg" : ""}`,
+      )
       .join("\n");
 
     const liveCounterLines = selectedLiveCounters
@@ -586,7 +627,7 @@ Thank you!`;
                           <p className="font-display font-bold text-lg text-primary">
                             ₹{item.price}
                             <span className="text-xs font-normal text-muted-foreground">
-                              /person
+                              /{item.pricingUnit === "kg" ? "kg" : "person"}
                             </span>
                           </p>
                         ) : (
@@ -819,8 +860,10 @@ function CartSummaryCard({
   onClose,
 }: CartSummaryCardProps) {
   const pricedTotal = cart.reduce((sum, c) => {
-    if (c.item.price) return sum + c.item.price * guests * c.quantity;
-    return sum;
+    if (!c.item.price) return sum;
+    const multiplier =
+      c.item.pricingUnit === "kg" ? c.quantity : c.quantity * guests;
+    return sum + c.item.price * multiplier;
   }, 0);
 
   return (
@@ -898,9 +941,12 @@ function CartSummaryCard({
                 {c.item.price && (
                   <span className="text-xs font-bold text-primary w-16 text-right">
                     ₹
-                    {(c.item.price * guests * c.quantity).toLocaleString(
-                      "en-IN",
-                    )}
+                    {(
+                      c.item.price *
+                      (c.item.pricingUnit === "kg"
+                        ? c.quantity
+                        : guests * c.quantity)
+                    ).toLocaleString("en-IN")}
                   </span>
                 )}
               </div>

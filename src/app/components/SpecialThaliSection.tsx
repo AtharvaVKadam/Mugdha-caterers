@@ -2,9 +2,18 @@
 
 import React, { useState } from "react";
 import AppImage from "@/components/ui/AppImage";
-import { SPECIAL_THALI, ADD_ONS, BUSINESS_CONFIG } from "@/lib/config";
+import { SPECIAL_THALI, NONVEG_THALI, ADD_ONS, BUSINESS_CONFIG } from "@/lib/config";
+
+type ThaliPackage = "veg" | "nonveg";
+
+const THALI_PACKAGES: Record<ThaliPackage, typeof SPECIAL_THALI> = {
+  veg: SPECIAL_THALI,
+  nonveg: NONVEG_THALI,
+};
 
 export default function SpecialThaliSection() {
+  const [selectedPackage, setSelectedPackage] =
+    useState<ThaliPackage>("veg");
   const [guests, setGuests] = useState(50);
   const [guestInput, setGuestInput] = useState("50");
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([]);
@@ -29,7 +38,8 @@ export default function SpecialThaliSection() {
     );
   };
 
-  const packageTotal = SPECIAL_THALI.price * guests;
+  const activeThali = THALI_PACKAGES[selectedPackage];
+  const packageTotal = activeThali.price * guests;
 
   const addOnTotal = selectedAddOns.reduce((sum, id) => {
     const addon = ADD_ONS.find((a) => a.id === id);
@@ -55,9 +65,9 @@ export default function SpecialThaliSection() {
 
 I would like to make a catering inquiry.
 
-📦 Selected Package: ${SPECIAL_THALI.name}
+📦 Selected Package: ${activeThali.name}
 👥 Number of People: ${guests}
-💰 Price Per Person: ₹${SPECIAL_THALI.price}
+💰 Price Per Person: ₹${activeThali.price}
 💵 Package Total: ₹${packageTotal.toLocaleString("en-IN")}
 
 ${selectedAddOnNames ? `✨ Add-Ons:\n${selectedAddOnNames}\n` : ""}
@@ -72,14 +82,36 @@ Please share availability and final details. Thank you!`;
     <section className="section-pad px-4 sm:px-6 bg-background" id="packages">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-10">
-          <span className="section-label">⭐ Featured Package</span>
+        <div className="text-center mb-8">
+          <span className="section-label">⭐ Featured Packages</span>
           <h2 className="font-display text-section-title font-bold text-foreground mt-3">
-            Special Vegetarian Thali
+            Special Thalis
           </h2>
           <p className="text-muted-foreground mt-2 max-w-xl mx-auto">
-            Complete Traditional Veg Thali — ₹200 Only
+            {activeThali.description}
           </p>
+
+          {/* Package switcher */}
+          <div className="inline-flex gap-2 mt-5 p-1.5 rounded-2xl bg-muted border border-border">
+            {(Object.keys(THALI_PACKAGES) as ThaliPackage[]).map((key) => {
+              const pkg = THALI_PACKAGES[key];
+              return (
+                <button
+                  key={key}
+                  onClick={() => setSelectedPackage(key)}
+                  className={`px-4 sm:px-6 py-2.5 rounded-xl text-sm font-bold transition-all tap-target ${
+                    selectedPackage === key
+                      ? key === "veg"
+                        ? "bg-green-600 text-white shadow-card"
+                        : "bg-primary text-white shadow-warm"
+                      : "text-muted-foreground hover:text-primary"
+                  }`}
+                >
+                  {key === "veg" ? "🟢" : "🔴"} {pkg.name.replace("Special ", "")} · ₹{pkg.price}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
@@ -87,18 +119,25 @@ Please share availability and final details. Thank you!`;
           <div className="food-card overflow-hidden">
             <div className="relative h-56 sm:h-72">
               <AppImage
-                src={SPECIAL_THALI.image}
-                alt="Traditional Indian thali with multiple colorful dishes on a brass plate, warm festive lighting"
+                src={activeThali.image}
+                alt={`${activeThali.name} with traditional Indian dishes on a plate, warm festive lighting`}
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-cover"
               />
               <div className="absolute inset-0 gradient-warm-top" />
               <div className="absolute top-4 left-4 flex gap-2">
-                <div className="veg-badge">
-                  <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
-                  Pure Veg
-                </div>
+                {selectedPackage === "veg" ? (
+                  <div className="veg-badge">
+                    <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
+                    Pure Veg
+                  </div>
+                ) : (
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-white bg-red-600">
+                    <span className="w-2 h-2 rounded-full bg-white inline-block" />
+                    Non-Veg
+                  </div>
+                )}
                 <div
                   className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold text-white"
                   style={{
@@ -113,11 +152,11 @@ Please share availability and final details. Thank you!`;
             <div className="p-5 sm:p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-display font-bold text-xl text-foreground">
-                  {SPECIAL_THALI.name}
+                  {activeThali.name}
                 </h3>
                 <div className="text-right">
                   <p className="text-2xl font-display font-bold text-primary">
-                    ₹200
+                    ₹{activeThali.price}
                   </p>
                   <p className="text-xs text-muted-foreground">per person</p>
                 </div>
@@ -125,7 +164,7 @@ Please share availability and final details. Thank you!`;
 
               {/* Items grid */}
               <div className="space-y-3">
-                {SPECIAL_THALI.items.map((group) => (
+                {activeThali.items.map((group) => (
                   <div key={group.category} className="flex gap-3">
                     <span className="text-xs font-bold text-muted-foreground w-32 flex-shrink-0 pt-0.5">
                       {group.category}
@@ -211,7 +250,7 @@ Please share availability and final details. Thank you!`;
                 <div>
                   <p className="text-sm text-muted-foreground">Package Total</p>
                   <p className="text-xs text-muted-foreground">
-                    ₹{SPECIAL_THALI.price} × {guests} guests
+                    ₹{activeThali.price} × {guests} guests
                   </p>
                 </div>
                 <p className="text-2xl font-display font-bold text-primary">

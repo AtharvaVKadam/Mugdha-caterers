@@ -40,6 +40,20 @@ export const SPECIAL_THALI = {
   ],
 };
 
+export const NONVEG_THALI = {
+  name: 'Special Non-Veg Thali',
+  price: 220,
+  currency: '₹',
+  description: 'Complete Traditional Non-Veg Thali — ₹220 Only',
+  image:
+    'https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&w=1200&q=80',
+  items: [
+    { category: 'Rice', items: ['Steamed Rice'] },
+    { category: 'Non-Veg', items: ['Chicken Gravy', 'Chicken Sukka'] },
+    { category: 'Indian Breads', items: ['Jowar Bhakri'] },
+  ],
+};
+
 export const ADD_ONS = [
   {
     id: 'starter-softdrink',
